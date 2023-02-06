@@ -67,20 +67,20 @@ def process_sales_data(sales_csv, orders_dir):
         # Determine the file name and full path of the Excel sheet
         customer_name = re.sub(r'\W', '', order_df['CUSTOMER NAME'].values[0])
         order_file_name = f'Order{order_id}_{customer_name}.xlsx'
+        order_full_path = os.path.join(orders_dir, order_file_name)
 
         # Export the data to an Excel sheet
-        writer = pd.ExcelWriter(os.path.join(orders_dir, order_file_name), engine='xlsxwriter')
+        writer = pd.ExcelWriter(order_full_path, engine='xlsxwriter')
         order_df.to_excel(writer, sheet_name=f"Order {order_id}", index=False)
         worksheet = writer.sheets[f"Order {order_id}"]
 
-
         # TODO: Format the Excel sheet
         num_format = writer.book.add_format({'num_format': '$#,##0.00'})
-        column_lengths = [11,13,15,15,15,13,13,10,30]
-        column_formats = [None,None,None,None,None,num_format,num_format,None,None]
+        column_width = (11,13,15,15,15,13,13,10,30)
+        column_formats = (None,None,None,None,None,num_format,num_format,None,None)
         
         for i in range(len(order_df.columns)):
-            worksheet.set_column(i,i,column_lengths[i],column_formats[i])
+            worksheet.set_column(i,i,column_width[i],column_formats[i])
 
         writer.close()
     
