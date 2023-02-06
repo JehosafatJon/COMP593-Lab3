@@ -13,14 +13,14 @@ def main():
 def get_sales_csv():
     # Check whether command line parameter provided
     if len(sys.argv) < 2:
-        print("error. no path provided.")
+        print("ERROR. No file path provided.")
         sys.exit(1)
 
     # Check whether provide parameter is valid path of file
     if os.path.isfile(sys.argv[1]):
         return sys.argv[1]
     else:
-        print("error. target of path is not a file.")
+        print("ERROR. The provided parameter is not a valid existing file path.")
         sys.exit(1)
 
 # Create the directory to hold the individual order Excel sheets
@@ -30,7 +30,7 @@ def create_orders_dir(sales_csv):
 
     # Determine the name and path of the directory to hold the order data files
     todays_date = date.today().isoformat()
-    orders_dir_name = f'Order_{todays_date}'
+    orders_dir_name = f'Orders_{todays_date}'
     orders_dir_path = os.path.join(csv_parent_dir,orders_dir_name)
 
     # Create the order directory if it does not already exist
@@ -60,22 +60,29 @@ def process_sales_data(sales_csv, orders_dir):
         order_df.sort_values(by='ITEM NUMBER', inplace=True)
 
         # Append a "GRAND TOTAL" row
-        total_price_df = pd.DataFrame({"ITEM PRICE":['GRAND TOTAL'],"TOTAL PRICE":[order_df[['TOTAL PRICE']].sum()]})
+        total_price_df = pd.DataFrame({"ITEM PRICE":['GRAND TOTAL:'],"TOTAL PRICE":[order_df['TOTAL PRICE'].sum()]})
         
         order_df = pd.concat([order_df,total_price_df])
 
         # Determine the file name and full path of the Excel sheet
-        customer_name = order_df['CUSTOMER NAME'].values[0]
-        customer_name = re.sub(r'\W', '', customer_name)
+        customer_name = re.sub(r'\W', '', order_df['CUSTOMER NAME'].values[0])
         order_file_name = f'Order{order_id}_{customer_name}.xlsx'
-        order_file_path = os.path.join(orders_dir, order_file_name)
-
-
 
         # Export the data to an Excel sheet
-        order_df.to_excel(order_file_path, sheet_name=f"Order {order_id}")
+        writer = pd.ExcelWriter(os.path.join(orders_dir, order_file_name), engine='xlsxwriter')
+        order_df.to_excel(writer, sheet_name=f"Order {order_id}", index=False)
+        worksheet = writer.sheets[f"Order {order_id}"]
+
 
         # TODO: Format the Excel sheet
+        num_format = writer.book.add_format({'num_format': '$#,##0.00'})
+        column_lengths = [11,13,15,15,15,13,13,10,30]
+        column_formats = [None,None,None,None,None,num_format,num_format,None,None]
+        
+        for i in range(len(order_df.columns)):
+            worksheet.set_column(i,i,column_lengths[i],column_formats[i])
+
+        writer.close()
     
     pass
 

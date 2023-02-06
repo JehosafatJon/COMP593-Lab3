@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "externalTerminal",
+            "console": "integratedTerminal",
             "justMyCode": true,
             "args": ["C:\\Users\\Administrator\\Documents\\GitHub\\COMP593-Lab3\\sales_data.csv"]
         }
